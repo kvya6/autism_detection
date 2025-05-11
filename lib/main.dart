@@ -51,6 +51,24 @@ class _LoginPageState extends State<LoginPage> {
   bool isPasswordVisible = false;
   bool isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    autoLogin();
+  }
+
+  Future<void> autoLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('rememberMe') == true &&
+        prefs.getString('username') != null &&
+        prefs.getString('password') != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    }
+  }
+
   Future<void> saveLoginData(String username, String password) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
@@ -63,6 +81,16 @@ class _LoginPageState extends State<LoginPage> {
     String? storedUsername = prefs.getString('username');
     String? storedPassword = prefs.getString('password');
     return (storedUsername == username && storedPassword == password);
+  }
+
+  bool isEmailOrPhone(String input) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final phoneRegex = RegExp(r'^\d{10}$');
+    return emailRegex.hasMatch(input) || phoneRegex.hasMatch(input);
+  }
+
+  bool isStrongPassword(String input) {
+    return RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$').hasMatch(input);
   }
 
   void showAlertDialog(String message) {
@@ -79,34 +107,6 @@ class _LoginPageState extends State<LoginPage> {
         ],
       ),
     );
-  }
-
-  bool isEmailOrPhone(String input) {
-    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    final phoneRegex = RegExp(r'^\d{10}$');
-    return emailRegex.hasMatch(input) || phoneRegex.hasMatch(input);
-  }
-
-  bool isStrongPassword(String input) {
-    return RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$').hasMatch(input);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    autoLogin();
-  }
-
-  void autoLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('rememberMe') == true &&
-        prefs.getString('username') != null &&
-        prefs.getString('password') != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    }
   }
 
   void forgotPasswordDialog() {
@@ -128,153 +128,164 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple.shade50,
-      appBar: AppBar(
-        title: const Text("Welcome Back"),
-        centerTitle: true,
-        backgroundColor: Colors.purple.shade700,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    const SizedBox(height: 40),
-                    const Text(
-                      "Login to Your Account",
-                      style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple),
-                    ),
-                    const SizedBox(height: 40),
-                    TextField(
-                      controller: usernameController,
-                      decoration: const InputDecoration(
-                        labelText: "Email or Phone",
-                        prefixIcon: Icon(Icons.person),
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: passwordController,
-                      obscureText: !isPasswordVisible,
-                      decoration: InputDecoration(
-                        labelText: "Password",
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              isPasswordVisible = !isPasswordVisible;
-                            });
-                          },
-                        ),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(
+            'assets/login_bg.jpg', // Add this image to your assets folder
+            fit: BoxFit.cover,
+          ),
+          Container(color: Colors.black.withOpacity(0.6)),
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Card(
+                  color: Colors.white.withOpacity(0.9),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
                       children: [
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: rememberMe,
-                              onChanged: (bool? value) {
+                        const Text(
+                          "Login to Your Account",
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: usernameController,
+                          decoration: const InputDecoration(
+                            labelText: "Email or Phone",
+                            prefixIcon: Icon(Icons.person),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: passwordController,
+                          obscureText: !isPasswordVisible,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                  isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                              onPressed: () {
                                 setState(() {
-                                  rememberMe = value ?? false;
+                                  isPasswordVisible = !isPasswordVisible;
                                 });
                               },
                             ),
-                            const Text("Remember Me"),
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: rememberMe,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      rememberMe = value ?? false;
+                                    });
+                                  },
+                                ),
+                                const Text("Remember Me"),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: forgotPasswordDialog,
+                              child: const Text("Forgot Password?"),
+                            ),
                           ],
                         ),
-                        TextButton(
-                          onPressed: forgotPasswordDialog,
-                          child: const Text("Forgot Password?"),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            String user = usernameController.text.trim();
+                            String pass = passwordController.text.trim();
+
+                            if (!isEmailOrPhone(user)) {
+                              showAlertDialog("Enter a valid email or 10-digit phone number.");
+                              return;
+                            }
+                            if (!isStrongPassword(pass)) {
+                              showAlertDialog(
+                                  "Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
+                              return;
+                            }
+
+                            setState(() => isLoading = true);
+                            bool isValid = await validateLogin(user, pass);
+                            setState(() => isLoading = false);
+
+                            if (isValid) {
+                              if (rememberMe) {
+                                await saveLoginData(user, pass);
+                              }
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => const HomePage()),
+                              );
+                            } else {
+                              showAlertDialog("Invalid username or password.");
+                            }
+                          },
+                          icon: const Icon(Icons.login),
+                          label: const Text("Login"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        OutlinedButton(
+                          onPressed: () async {
+                            String user = usernameController.text.trim();
+                            String pass = passwordController.text.trim();
+
+                            if (!isEmailOrPhone(user)) {
+                              showAlertDialog("Enter a valid email or 10-digit phone number.");
+                              return;
+                            }
+
+                            if (!isStrongPassword(pass)) {
+                              showAlertDialog(
+                                  "Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
+                              return;
+                            }
+
+                            await saveLoginData(user, pass);
+                            showAlertDialog("Account Created. Now log in.");
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.purple,
+                            side: const BorderSide(color: Colors.purple),
+                          ),
+                          child: const Text("Sign Up"),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        String user = usernameController.text.trim();
-                        String pass = passwordController.text.trim();
-
-                        if (!isEmailOrPhone(user)) {
-                          showAlertDialog("Enter a valid email or 10-digit phone number.");
-                          return;
-                        }
-
-                        if (!isStrongPassword(pass)) {
-                          showAlertDialog("Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
-                          return;
-                        }
-
-                        setState(() => isLoading = true);
-
-                        bool isValid = await validateLogin(user, pass);
-
-                        setState(() => isLoading = false);
-
-                        if (isValid) {
-                          if (rememberMe) {
-                            await saveLoginData(user, pass);
-                          }
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const HomePage()),
-                          );
-                        } else {
-                          showAlertDialog("Invalid username or password.");
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purple,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      icon: const Icon(Icons.login),
-                      label: const Text("Login"),
-                    ),
-                    const SizedBox(height: 15),
-                    OutlinedButton(
-                      onPressed: () async {
-                        String user = usernameController.text.trim();
-                        String pass = passwordController.text.trim();
-
-                        if (!isEmailOrPhone(user)) {
-                          showAlertDialog("Enter a valid email or 10-digit phone number.");
-                          return;
-                        }
-
-                        if (!isStrongPassword(pass)) {
-                          showAlertDialog("Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
-                          return;
-                        }
-
-                        await saveLoginData(user, pass);
-                        showAlertDialog("Account Created. Now log in.");
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.purple,
-                        side: const BorderSide(color: Colors.purple),
-                      ),
-                      child: const Text("Sign Up"),
-                    ),
-                  ],
+                  ),
                 ),
               ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+
+
+
+
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
