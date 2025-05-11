@@ -36,7 +36,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -131,11 +130,17 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/login_bg.jpg', // Add this image to your assets folder
-            fit: BoxFit.cover,
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/login_bg.jpg"),
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
-          Container(color: Colors.black.withOpacity(0.6)),
+          Container(
+            color: Colors.black.withOpacity(0.6), // dark overlay for readability
+          ),
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Center(
@@ -169,8 +174,9 @@ class _LoginPageState extends State<LoginPage> {
                             labelText: "Password",
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
-                              icon: Icon(
-                                  isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                              icon: Icon(isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off),
                               onPressed: () {
                                 setState(() {
                                   isPasswordVisible = !isPasswordVisible;
@@ -228,7 +234,8 @@ class _LoginPageState extends State<LoginPage> {
                               }
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(builder: (_) => const HomePage()),
+                                MaterialPageRoute(
+                                    builder: (_) => const HomePage()),
                               );
                             } else {
                               showAlertDialog("Invalid username or password.");
