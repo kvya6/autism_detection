@@ -27,10 +27,11 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
+        '/second': (context) => const GamePage(),
         '/third': (context) => const ChatBotPage(),
-        '/fourth': (context) => const Feedback(),
+        '/sixth': (context) => const Feedback(),
         '/fifth': (context) => const Settings(),
-        '/sixth': (context) => const Profile(),
+        '/fourth': (context) => const Profile(),
       },
     );
   }
@@ -243,7 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                           icon: const Icon(Icons.login),
                           label: const Text("Login"),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple,
+                            backgroundColor: const Color.fromARGB(255, 44, 100, 179),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                             shape: RoundedRectangleBorder(
@@ -271,8 +272,8 @@ class _LoginPageState extends State<LoginPage> {
                             showAlertDialog("Account Created. Now log in.");
                           },
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.purple,
-                            side: const BorderSide(color: Colors.purple),
+                            foregroundColor: const Color.fromARGB(255, 39, 114, 176),
+                            side: const BorderSide(color: Color.fromARGB(255, 39, 128, 176)),
                           ),
                           child: const Text("Sign Up"),
                         ),
@@ -297,85 +298,118 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home Page'),
-        backgroundColor: const Color.fromARGB(255, 127, 195, 236),
+        title: const Text(
+          'Autism Care',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            letterSpacing: 1.2,
+          ),
+        ),
+        backgroundColor: const Color(0xFF118AB2),
+        elevation: 4,
+        centerTitle: true,
       ),
       drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 55, 150, 191),
+        backgroundColor: const Color(0xFF073B4C),
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Color.fromARGB(255, 6, 33, 79)),
-              child: Text('child care', style: TextStyle(color: Colors.white, fontSize: 30)),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF06D6A0), Color(0xFF118AB2)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Row(
+                children: const [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: AssetImage('assets/profile.jpg'), // Add your image
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      'Welcome!',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.home, color: Colors.white),
-              title: const Text('Home', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/home'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.info, color: Colors.white),
-              title: const Text('About', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/third'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.feedback, color: Colors.white),
-              title: const Text('Feedback', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/fourth'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings, color: Colors.white),
-              title: const Text('Settings', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/fifth'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.person, color: Colors.white),
-              title: const Text('Profile/Login', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/sixth'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.message_rounded, color: Colors.white),
-              title: const Text('Chat Bot', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/third'),
-            ),
+            const SizedBox(height: 8),
+            _buildDrawerItem(context, Icons.home, 'Home', '/home'),
+            _buildDrawerItem(context, Icons.person, 'Profile', '/fourth'),
+            _buildDrawerItem(context, Icons.message_rounded, 'Chat Bot', '/third'),
+            _buildDrawerItem(context, Icons.videogame_asset, 'Games', '/second'),
+            _buildDrawerItem(context, Icons.settings, 'Settings', '/fifth'),
+            _buildDrawerItem(context, Icons.feedback, 'Feedback', '/sixth'),
           ],
         ),
       ),
       body: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(30),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/Background.jpg'),
             fit: BoxFit.cover,
+            opacity: 0.15,
+          ),
+          gradient: LinearGradient(
+            colors: [Color(0xFFCAF0F8), Color(0xFFE0F7FA)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: const [
             Text(
-              'Autism Early Detection App',
+              'Autism Early Detection',
               style: TextStyle(
-                color: Color.fromARGB(255, 43, 153, 161),
-                fontSize: 40,
+                fontSize: 36,
                 fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
+                color: Color(0xFF023047),
               ),
+              textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
             Text(
-              'Helping parents assess developmental milestones in children',
-              textAlign: TextAlign.center,
+              'Empowering parents with tools to track and understand early developmental milestones.',
               style: TextStyle(
-                color: Color.fromARGB(255, 21, 0, 70),
-                fontWeight: FontWeight.w700,
-                fontSize: 24,
+                fontSize: 20,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF264653),
               ),
+              textAlign: TextAlign.center,
             ),
+            SizedBox(height: 40),
+            Icon(Icons.favorite, size: 80, color: Color(0xFF06D6A0)),
           ],
         ),
       ),
+    );
+  }
+
+  ListTile _buildDrawerItem(BuildContext context, IconData icon, String title, String routeName) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 18, color: Colors.white),
+      ),
+      onTap: () {
+        Navigator.pop(context); // Close drawer
+        Navigator.pushNamed(context, routeName);
+      },
     );
   }
 }
@@ -1271,5 +1305,102 @@ class Feedback extends StatelessWidget {
                     ),
                   ]),
             ))));
+  }
+}
+
+class GamePage extends StatefulWidget {
+  const GamePage({super.key});
+
+  @override
+  _GamePageState createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  int _score = 0;
+  bool _isGameStarted = false;
+
+  void _startGame() {
+    setState(() {
+      _score = 0;
+      _isGameStarted = true;
+    });
+  }
+
+  void _increaseScore() {
+    if (_isGameStarted) {
+      setState(() {
+        _score++;
+      });
+    }
+  }
+
+  void _resetGame() {
+    setState(() {
+      _isGameStarted = false;
+      _score = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Tap Score Game',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.indigo,
+        elevation: 5,
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/game_background.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                _isGameStarted ? 'Score: $_score' : 'Tap to Start the Game',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: _isGameStarted ? Colors.black87 : Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 40),
+              GestureDetector(
+                onTap: _isGameStarted ? _increaseScore : _startGame,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundColor: Colors.indigoAccent,
+                  child: Icon(
+                    _isGameStarted ? Icons.touch_app : Icons.play_arrow,
+                    size: 50,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (_isGameStarted)
+                ElevatedButton.icon(
+                  onPressed: _resetGame,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset Game'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.indigo,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
