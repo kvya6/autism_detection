@@ -47,11 +47,15 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool rememberMe = false;
+  bool isLoading = false;
+  bool isPasswordVisible = false;
 
   Future<void> saveLoginData(String username, String password) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
     await prefs.setString('password', password);
+    await prefs.setBool('rememberMe', rememberMe);
   }
 
   Future<bool> validateLogin(String username, String password) async {
@@ -85,12 +89,22 @@ class _LoginPageState extends State<LoginPage> {
 
   void autoLogin() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('username') != null && prefs.getString('password') != null) {
+    if (prefs.getBool('rememberMe') == true &&
+        prefs.getString('username') != null &&
+        prefs.getString('password') != null) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
       );
     }
+  }
+
+  bool isEmail(String input) {
+    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(input);
+  }
+
+  bool isStrongPassword(String input) {
+    return input.length >= 6;
   }
 
   @override
@@ -99,48 +113,109 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(title: const Text("User Login")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(labelText: "Username"),
-            ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () async {
-                String user = usernameController.text;
-                String pass = passwordController.text;
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(
+                      labelText: "Username (email format)",
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                  ),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: !isPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(isPasswordVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off),
+                        onPressed: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: rememberMe,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            rememberMe = value ?? false;
+                          });
+                        },
+                      ),
+                      const Text('Remember Me'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      String user = usernameController.text;
+                      String pass = passwordController.text;
 
-                bool isValid = await validateLogin(user, pass);
-                if (isValid) {
-                  await saveLoginData(user, pass);
-                  Navigator.pushReplacement(
-                    context,MaterialPageRoute(builder: (_) => const HomePage()),
-                  );
-                } else {
-                  showAlertDialog('Invalid username or password');
-                }
-              },
-              child: const Text('Login'),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                String user = usernameController.text;
-                String pass = passwordController.text;
-                await saveLoginData(user, pass);
-                showAlertDialog("Account Created. Now log in.");
-              },
-              child: const Text('Sign Up'),
-            ),
-          ],
-        ),
+                      if (!isEmail(user)) {
+                        showAlertDialog('Please enter a valid email address.');
+                        return;
+                      }
+                      if (!isStrongPassword(pass)) {
+                        showAlertDialog('Password must be at least 6 characters.');
+                        return;
+                      }
+
+                      setState(() {
+                        isLoading = true;
+                      });
+
+                      bool isValid = await validateLogin(user, pass);
+                      setState(() {
+                        isLoading = false;
+                      });
+
+                      if (isValid) {
+                        if (rememberMe) {
+                          await saveLoginData(user, pass);
+                        }
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HomePage()),
+                        );
+                      } else {
+                        showAlertDialog('Invalid username or password');
+                      }
+                    },
+                    child: const Text('Login'),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      String user = usernameController.text;
+                      String pass = passwordController.text;
+
+                      if (!isEmail(user)) {
+                        showAlertDialog('Please enter a valid email address.');
+                        return;
+                      }
+                      if (!isStrongPassword(pass)) {
+                        showAlertDialog('Password must be at least 6 characters.');
+                        return;
+                      }
+
+                      await saveLoginData(user, pass);
+                      showAlertDialog("Account Created. Now log in.");
+                    },
+                    child: const Text('Sign Up'),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -372,17 +447,14 @@ class _UserProfilePageState extends State<Profile> {
   }
 }
 
-//class Settings extends StatefulWidget {
+class Settings extends StatefulWidget {
   const Settings({super.key});
+
   @override
-  State<Settings> createState() => _Settings();
+  State<Settings> createState() => _SettingsState();
 }
 
-//class _Settings extends State<Settings> {
-  String? value1 = '1 minute';
-  String? value2 = '5 minutes';
-  String? value3 = '1';
-  bool isSwitch = false;
+class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -393,222 +465,96 @@ class _UserProfilePageState extends State<Profile> {
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
-              fontSize: 35,
+              fontSize: 30,
             ),
           ),
           backgroundColor: Colors.purple.shade800,
           centerTitle: true,
         ),
-        body: Container(
+        body: ListView(
           padding: const EdgeInsets.all(15),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  'Remainder',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30,
-                  ),
-                  textAlign: TextAlign.left,
-                ),
+          children: [
+            _buildSection("Accessibility Settings", [
+              "Text Size & Font Choice",
+              "High Contrast Mode / Dark Mode",
+              "Sound Control (Mute, Volume Adjustments)",
+              "Animation Toggle",
+              "Haptic Feedback Control",
+              "Speech Output Speed & Tone"
+            ]),
+            _buildSection("Learning Customization", [
+              "Preferred Learning Style Selector",
+              "Task Difficulty Adjustment",
+              "Repetition Settings",
+              "Progression Control"
+            ]),
+            _buildSection("Notifications & Reminders", [
+              "Routine Reminders",
+              "Session Time Limits",
+              "Event Reminders"
+            ]),
+            _buildSection("Parental Controls & Security", [
+              "PIN Protection",
+              "Content Access Control",
+              "Data Sharing Consent",
+              "Profile Switching Lock"
+            ]),
+            _buildSection("Progress & Reports", [
+              "Enable/Disable Progress Tracking",
+              "Export Reports",
+              "Sync with Therapist/Educator"
+            ]),
+            _buildSection("Language & Regional Settings", [
+              "Language Selection",
+              "Voice Language Options",
+              "Date & Time Format"
+            ]),
+            _buildSection("App Customization", [
+              "Theme Selection",
+              "Custom Avatar Builder",
+              "Custom Rewards System"
+            ]),
+            _buildSection("Support & Help", [
+              "How-To Tutorials",
+              "FAQs",
+              "Contact Support",
+              "Report an Issue"
+            ]),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.purple.shade800,
+                padding: const EdgeInsets.symmetric(vertical: 15),
               ),
-              const SizedBox(
-                height: 30,
-                width: 50,
+              child: const Text(
+                'Back to Home',
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  'Ring Duration',
-                  style: TextStyle(fontSize: 25),
-                  textAlign: TextAlign.left,
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: DropdownButton(
-                    style: const TextStyle(color: Colors.red),
-                    value: value1,
-                    onChanged: (newvalue) {
-                      setState(() {
-                        value1 = newvalue;
-                      });
-                    },
-                    items: const [
-                      DropdownMenuItem<String>(
-                        value: '1 minute',
-                        child: Text('1 minute'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '5 minutes',
-                        child: Text('5 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '10 minutes',
-                        child: Text('10 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '15 minutes',
-                        child: Text('15 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '20 minutes',
-                        child: Text('20 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '30 minutes',
-                        child: Text('30 minutes'),
-                      ),
-                    ]),
-              ),
-              const SizedBox(
-                height: 30,
-                width: 50,
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  'Interval',
-                  style: TextStyle(fontSize: 25),
-                  textAlign: TextAlign.left,
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: DropdownButton(
-                    style: const TextStyle(color: Colors.red),
-                    value: value2,
-                    onChanged: (newvalue) {
-                      setState(() {
-                        value2 = newvalue;
-                      });
-                    },
-                    items: const [
-                      DropdownMenuItem<String>(
-                        value: '5 minutes',
-                        child: Text('5 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '10 minutes',
-                        child: Text('10 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '15 minutes',
-                        child: Text('15 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '20 minutes',
-                        child: Text('20 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '25 minutes',
-                        child: Text('25 minutes'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '30 minutes',
-                        child: Text('30 minutes'),
-                      ),
-                    ]),
-              ),
-              const SizedBox(
-                height: 30,
-                width: 50,
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: const Text(
-                  'Times',
-                  style: TextStyle(fontSize: 25),
-                  textAlign: TextAlign.left,
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: DropdownButton(
-                    style: const TextStyle(color: Colors.red),
-                    value: value3,
-                    onChanged: (newvalue) {
-                      setState(() {
-                        value3 = newvalue;
-                      });
-                    },
-                    items: const [
-                      DropdownMenuItem<String>(
-                        value: '1',
-                        child: Text('1'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '2',
-                        child: Text('2'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '3',
-                        child: Text('3'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '5',
-                        child: Text('5'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: '10',
-                        child: Text('10'),
-                      ),
-                    ]),
-              ),
-              const SizedBox(
-                height: 30,
-                width: 50,
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Notify Before Ringing',
-                      style: TextStyle(fontSize: 25),
-                      textAlign: TextAlign.left,
-                    ),
-                    const SizedBox(
-                      width: 15,
-                      height: 5,
-                    ),
-                    Container(
-                        child: Switch(
-                            value: isSwitch,
-                            onChanged: (value) {
-                              setState(() {
-                                isSwitch = value;
-                              });
-                            }))
-                  ],
-                ),
-              ),
-              Container(
-                margin: const EdgeInsets.all(15),
-                height: 50,
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      Colors.purple.shade800,
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    'Back to Home',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              )
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSection(String title, List<String> items) {
+    return ExpansionTile(
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      children: items
+          .map((item) => ListTile(
+                title: Text(item),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  // Placeholder for future individual setting screens
+                },
+              ))
+          .toList(),
     );
   }
 }
