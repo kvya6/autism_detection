@@ -1,0 +1,38 @@
+name: autism
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8  # Only this one should be present
+
+  # ✅ Added dependencies for image and video picking
+  image_picker: ^1.0.7
+  file_picker: ^6.1.1
+  path_provider: ^2.1.1
+
+  # ✅ Other required dependencies
+  flutter_dotenv: ^5.0.2
+  shared_preferences: ^2.2.2
+  http: ^0.13.6
+  flutter_rating_bar: ^4.0.0
+  audioplayers: ^0.20.1
+  flutter_local_notifications: ^14.0.0
+  timezone: ^0.9.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
