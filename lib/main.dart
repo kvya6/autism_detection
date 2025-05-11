@@ -11,6 +11,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() async {
   runApp(const MyApp());
@@ -297,119 +304,106 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text(
-          'Autism Care',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            letterSpacing: 1.2,
-          ),
-        ),
-        backgroundColor: const Color(0xFF118AB2),
-        elevation: 4,
-        centerTitle: true,
+        title: const Text('Home Page'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       drawer: Drawer(
-        backgroundColor: const Color(0xFF073B4C),
+        backgroundColor: Colors.lightBlue.shade100,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF06D6A0), Color(0xFF118AB2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            const DrawerHeader(
+              decoration: BoxDecoration(color: Color.fromARGB(255, 6, 33, 79)),
+              child: Text('Child Care', style: TextStyle(color: Colors.white, fontSize: 30)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home, color: Colors.blueGrey),
+              title: const Text('Home'),
+              onTap: () => Navigator.pushNamed(context, '/home'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.person, color: Colors.blueGrey),
+              title: const Text('Profile'),
+              onTap: () => Navigator.pushNamed(context, '/fourth'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.message_rounded, color: Colors.blueGrey),
+              title: const Text('Chat Bot'),
+              onTap: () => Navigator.pushNamed(context, '/third'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.videogame_asset, color: Colors.blueGrey),
+              title: const Text('Game'),
+              onTap: () => Navigator.pushNamed(context, '/second'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.blueGrey),
+              title: const Text('Settings'),
+              onTap: () => Navigator.pushNamed(context, '/fifth'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.feedback, color: Colors.blueGrey),
+              title: const Text('Feedback'),
+              onTap: () => Navigator.pushNamed(context, '/sixth'),
+            ),
+          ],
+        ),
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Lottie.asset(
+              'assets/animation/child_care.json',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Text(
+                  'Autism Early Detection App',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4,
+                        color: Colors.black54,
+                        offset: Offset(2, 2),
+                      )
+                    ],
+                  ),
                 ),
-              ),
-              child: Row(
-                children: const [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/profile.jpg'), // Add your image
+                SizedBox(height: 20),
+                Text(
+                  'Helping parents assess developmental milestones in children',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4,
+                        color: Colors.black38,
+                        offset: Offset(1, 1),
+                      )
+                    ],
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      'Welcome!',
-                      style: TextStyle(
-                        fontSize: 22,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _buildDrawerItem(context, Icons.home, 'Home', '/home'),
-            _buildDrawerItem(context, Icons.person, 'Profile', '/fourth'),
-            _buildDrawerItem(context, Icons.message_rounded, 'Chat Bot', '/third'),
-            _buildDrawerItem(context, Icons.videogame_asset, 'Games', '/second'),
-            _buildDrawerItem(context, Icons.settings, 'Settings', '/fifth'),
-            _buildDrawerItem(context, Icons.feedback, 'Feedback', '/sixth'),
-          ],
-        ),
-      ),
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 50),
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/Background.jpg'),
-            fit: BoxFit.cover,
-            opacity: 0.15,
           ),
-          gradient: LinearGradient(
-            colors: [Color(0xFFCAF0F8), Color(0xFFE0F7FA)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: const [
-            Text(
-              'Autism Early Detection',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF023047),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Empowering parents with tools to track and understand early developmental milestones.',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Color(0xFF264653),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 40),
-            Icon(Icons.favorite, size: 80, color: Color(0xFF06D6A0)),
-          ],
-        ),
+        ],
       ),
-    );
-  }
-
-  ListTile _buildDrawerItem(BuildContext context, IconData icon, String title, String routeName) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 18, color: Colors.white),
-      ),
-      onTap: () {
-        Navigator.pop(context); // Close drawer
-        Navigator.pushNamed(context, routeName);
-      },
     );
   }
 }
@@ -417,19 +411,41 @@ class HomePage extends StatelessWidget {
 class Profile extends StatefulWidget {
   const Profile({super.key});
 
-    @override
+  @override
   State<Profile> createState() => _UserProfilePageState();
 }
 
 class _UserProfilePageState extends State<Profile> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  // Controllers for the profile fields
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
+  final TextEditingController parentNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController streetController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController stateController = TextEditingController();
+  final TextEditingController zipController = TextEditingController();
+  final TextEditingController emergencyContactController = TextEditingController();
+  final TextEditingController heightController = TextEditingController();
+  final TextEditingController weightController = TextEditingController();
+  final TextEditingController bloodGroupController = TextEditingController();
+  final TextEditingController allergiesController = TextEditingController();
+  final TextEditingController medicalConditionsController = TextEditingController();
+  final TextEditingController currentMedicationsController = TextEditingController();
+  final TextEditingController immunizationStatusController = TextEditingController();
+  final TextEditingController familyDoctorController = TextEditingController();
+  final TextEditingController therapistContactController = TextEditingController();
 
   File? _profileImage;
   File? _videoFile;
 
+  String selectedHeightUnit = 'cm';  // Options for height unit
+  String selectedWeightUnit = 'kg';  // Options for weight unit
+
+  // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -441,6 +457,7 @@ class _UserProfilePageState extends State<Profile> {
     }
   }
 
+  // Function to pick a video from the gallery
   Future<void> _pickVideo() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickVideo(source: ImageSource.gallery);
@@ -452,11 +469,26 @@ class _UserProfilePageState extends State<Profile> {
     }
   }
 
+  // Function to save the profile data
   void _saveProfile() {
-    final name = nameController.text;
-    final age = ageController.text;
-    final address = addressController.text;
+    final firstName = firstNameController.text;
+    final lastName = lastNameController.text;
+    final dob = dobController.text;
+    final gender = genderController.text;
+    final parentName = parentNameController.text;
     final phone = phoneController.text;
+    final email = emailController.text;
+    final address = '${streetController.text}, ${cityController.text}, ${stateController.text}, ${zipController.text}';
+    final emergencyContact = emergencyContactController.text;
+    final height = heightController.text;
+    final weight = weightController.text;
+    final bloodGroup = bloodGroupController.text;
+    final allergies = allergiesController.text;
+    final medicalConditions = medicalConditionsController.text;
+    final currentMedications = currentMedicationsController.text;
+    final immunizationStatus = immunizationStatusController.text;
+    final familyDoctor = familyDoctorController.text;
+    final therapistContact = therapistContactController.text;
 
     // Save these to Firebase or local DB if required
 
@@ -465,6 +497,7 @@ class _UserProfilePageState extends State<Profile> {
     );
   }
 
+  // Function to handle logout
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -485,69 +518,225 @@ class _UserProfilePageState extends State<Profile> {
             icon: const Icon(Icons.logout),
             onPressed: _logout,
             tooltip: 'Logout',
-          )
+          ),
         ],
+        backgroundColor: Colors.transparent, // Transparent AppBar
+        elevation: 0, // Remove shadow
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage:
-                    _profileImage != null ? FileImage(_profileImage!) : null,
-                child: _profileImage == null
-                    ? const Icon(Icons.add_a_photo, size: 40)
-                    : null,
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/Profile_Background.jpg'), // Your background image
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: _profileImage != null
+                      ? FileImage(_profileImage!)
+                      : null,
+                  child: _profileImage == null
+                      ? const Icon(Icons.add_a_photo, size: 50, color: Colors.white)
+                      : null,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Full Name'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: ageController,
-              decoration: const InputDecoration(labelText: "Child's Age"),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: addressController,
-              decoration: const InputDecoration(labelText: 'Address'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number'),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _pickVideo,
-              icon: const Icon(Icons.video_file),
-              label: const Text('Upload Observation Video'),
-            ),
-            if (_videoFile != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child:
-                    Text('Selected Video: ${_videoFile!.path.split('/').last}'),
+              const SizedBox(height: 20),
+              // First Name and Last Name on the same line
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(firstNameController, 'First Name'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildTextField(lastNameController, 'Last Name'),
+                  ),
+                ],
               ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _saveProfile,
-              child: const Text('Save Profile'),
-            ),
-          ],
+              const SizedBox(height: 10),
+              _buildTextField(dobController, 'Date of Birth / Age'),
+              _buildTextField(genderController, 'Gender'),
+              _buildTextField(parentNameController, 'Parent/Guardian Name'),
+              _buildPhoneNumberField(),
+              _buildTextField(emailController, 'Email Address'),
+              const SizedBox(height: 20),
+              // Address section
+              _buildTextField(streetController, 'Street Address'),
+              _buildTextField(cityController, 'City'),
+              _buildTextField(stateController, 'State'),
+              _buildTextField(zipController, 'ZIP Code'),
+              const SizedBox(height: 20),
+              _buildTextField(emergencyContactController, 'Emergency Contact(s)'),
+              // Height and Weight on the same line
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(heightController, 'Height', TextInputType.number),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildUnitSelector('Height Unit', selectedHeightUnit, ['cm', 'm']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(weightController, 'Weight', TextInputType.number),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildUnitSelector('Weight Unit', selectedWeightUnit, ['kg', 'lbs']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(bloodGroupController, 'Blood Group'),
+              _buildTextField(allergiesController, 'Allergies'),
+              _buildTextField(medicalConditionsController, 'Medical Conditions'),
+              _buildTextField(currentMedicationsController, 'Current Medications'),
+              _buildTextField(immunizationStatusController, 'Immunization Status'),
+              _buildTextField(familyDoctorController, 'Family Doctor Contact'),
+              _buildTextField(therapistContactController, 'Therapist Contact Info'),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _pickVideo,
+                icon: const Icon(Icons.video_file),
+                label: const Text('Upload Observation Video'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(94, 154, 180, 1), // Light blue theme
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+              if (_videoFile != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text('Selected Video: ${_videoFile!.path.split('/').last}'),
+                ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _saveProfile,
+                icon: const Icon(Icons.save),
+                label: const Text('Save Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(94, 154, 180, 1), // Light blue theme
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.exit_to_app),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Red for logout
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  // Helper function to create a text field
+  Widget _buildTextField(TextEditingController controller, String label,
+      [TextInputType keyboardType = TextInputType.text]) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.transparent, // Transparent background for fields
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.white.withOpacity(0.6), width: 1),
+          ),
+          labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+        ),
+        style: TextStyle(color: Colors.white), // White text inside the fields
+        keyboardType: keyboardType,
+      ),
+    );
+  }
+
+  // Helper function for phone number input
+  Widget _buildPhoneNumberField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: phoneController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                filled: true,
+                fillColor: Colors.transparent,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.6), width: 1),
+                ),
+                labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+              ),
+              style: TextStyle(color: Colors.white),
+              keyboardType: TextInputType.phone,
+              maxLength: 10, // Limiting to 10 digits
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper function to create unit selectors for height and weight
+  Widget _buildUnitSelector(String label, String selectedValue, List<String> options) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.transparent,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.6), width: 1),
+          ),
+          labelStyle: TextStyle(color: const Color.fromARGB(255, 0, 0, 0).withOpacity(0.7)),
+        ),
+        style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
+        items: options.map((value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (newValue) {
+          setState(() {
+            if (label == 'Height Unit') {
+              selectedHeightUnit = newValue!;
+            } else if (label == 'Weight Unit') {
+              selectedWeightUnit = newValue!;
+            }
+          });
+        },
+      ),
+    );
+  }
 }
+
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
