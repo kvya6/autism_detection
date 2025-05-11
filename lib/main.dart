@@ -130,6 +130,7 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         fit: StackFit.expand,
         children: [
+          // Background image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -138,15 +139,15 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          Container(
-            color: Colors.black.withOpacity(0.6), // dark overlay for readability
-          ),
+          // Semi-transparent overlay
+          Container(color: Colors.black.withOpacity(0.6)),
+          // Login form
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Center(
               child: SingleChildScrollView(
                 child: Card(
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withOpacity(0.7), // Make the card background transparent
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 8,
                   child: Padding(
@@ -174,9 +175,8 @@ class _LoginPageState extends State<LoginPage> {
                             labelText: "Password",
                             prefixIcon: const Icon(Icons.lock),
                             suffixIcon: IconButton(
-                              icon: Icon(isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
+                              icon: Icon(
+                                  isPasswordVisible ? Icons.visibility : Icons.visibility_off),
                               onPressed: () {
                                 setState(() {
                                   isPasswordVisible = !isPasswordVisible;
@@ -234,8 +234,7 @@ class _LoginPageState extends State<LoginPage> {
                               }
                               Navigator.pushReplacement(
                                 context,
-                                MaterialPageRoute(
-                                    builder: (_) => const HomePage()),
+                                MaterialPageRoute(builder: (_) => const HomePage()),
                               );
                             } else {
                               showAlertDialog("Invalid username or password.");
@@ -289,8 +288,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-
-
 
 
 class HomePage extends StatelessWidget {
