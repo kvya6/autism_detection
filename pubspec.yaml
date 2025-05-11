@@ -11,17 +11,27 @@ dependencies:
   flutter:
     sdk: flutter
 
-  cupertino_icons: ^1.0.8  # Only this one should be present
+  # UI & Icons
+  cupertino_icons: ^1.0.8
 
-  # ✅ Added dependencies for image and video picking
+  # Firebase dependencies
+
+  # Animation
+  lottie: ^2.0.0
+
+  # Media (Image, File Picking)
   image_picker: ^1.0.7
   file_picker: ^6.1.1
   path_provider: ^2.1.1
 
-  # ✅ Other required dependencies
+  # Config & Preferences
   flutter_dotenv: ^5.0.2
   shared_preferences: ^2.2.2
+
+  # HTTP & APIs
   http: ^0.13.6
+
+  # Feedback & Notifications
   flutter_rating_bar: ^4.0.0
   audioplayers: ^0.20.1
   flutter_local_notifications: ^14.0.0
@@ -36,3 +46,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+  assets:
+    - assets/login_bg.jpg
+    - assets/game_background.jpg
+    - assets/Background.jpg
+    - assets/animation/child_care.json
+    # Lottie animation file
+    - assets/Profile_Background.jpg
