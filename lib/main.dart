@@ -11,6 +11,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 void main() async {
   runApp(const MyApp());
@@ -27,15 +34,15 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/home': (context) => const HomePage(),
+        '/second': (context) => const GamePage(),
         '/third': (context) => const ChatBotPage(),
-        '/fourth': (context) => const Feedback(),
+        '/sixth': (context) => const Feedback(),
         '/fifth': (context) => const Settings(),
-        '/sixth': (context) => const Profile(),
+        '/fourth': (context) => const Profile(),
       },
     );
   }
 }
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -48,8 +55,26 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool rememberMe = false;
-  bool isLoading = false;
   bool isPasswordVisible = false;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    autoLogin();
+  }
+
+  Future<void> autoLogin() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('rememberMe') == true &&
+        prefs.getString('username') != null &&
+        prefs.getString('password') != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    }
+  }
 
   Future<void> saveLoginData(String username, String password) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -63,6 +88,16 @@ class _LoginPageState extends State<LoginPage> {
     String? storedUsername = prefs.getString('username');
     String? storedPassword = prefs.getString('password');
     return (storedUsername == username && storedPassword == password);
+  }
+
+  bool isEmailOrPhone(String input) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+    final phoneRegex = RegExp(r'^\d{10}$');
+    return emailRegex.hasMatch(input) || phoneRegex.hasMatch(input);
+  }
+
+  bool isStrongPassword(String input) {
+    return RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$').hasMatch(input);
   }
 
   void showAlertDialog(String message) {
@@ -81,141 +116,182 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    autoLogin();
-  }
-
-  void autoLogin() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('rememberMe') == true &&
-        prefs.getString('username') != null &&
-        prefs.getString('password') != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    }
-  }
-
-  bool isEmail(String input) {
-    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(input);
-  }
-
-  bool isStrongPassword(String input) {
-    return input.length >= 6;
+  void forgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Forgot Password?"),
+        content: const Text("Please contact support to reset your password."),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("User Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  TextField(
-                    controller: usernameController,
-                    decoration: const InputDecoration(
-                      labelText: "Username (email format)",
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                  ),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: !isPasswordVisible,
-                    decoration: InputDecoration(
-                      labelText: "Password",
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(isPasswordVisible
-                            ? Icons.visibility
-                            : Icons.visibility_off),
-                        onPressed: () {
-                          setState(() {
-                            isPasswordVisible = !isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: rememberMe,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            rememberMe = value ?? false;
-                          });
-                        },
-                      ),
-                      const Text('Remember Me'),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () async {
-                      String user = usernameController.text;
-                      String pass = passwordController.text;
-
-                      if (!isEmail(user)) {
-                        showAlertDialog('Please enter a valid email address.');
-                        return;
-                      }
-                      if (!isStrongPassword(pass)) {
-                        showAlertDialog('Password must be at least 6 characters.');
-                        return;
-                      }
-
-                      setState(() {
-                        isLoading = true;
-                      });
-
-                      bool isValid = await validateLogin(user, pass);
-                      setState(() {
-                        isLoading = false;
-                      });
-
-                      if (isValid) {
-                        if (rememberMe) {
-                          await saveLoginData(user, pass);
-                        }
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (_) => const HomePage()),
-                        );
-                      } else {
-                        showAlertDialog('Invalid username or password');
-                      }
-                    },
-                    child: const Text('Login'),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      String user = usernameController.text;
-                      String pass = passwordController.text;
-
-                      if (!isEmail(user)) {
-                        showAlertDialog('Please enter a valid email address.');
-                        return;
-                      }
-                      if (!isStrongPassword(pass)) {
-                        showAlertDialog('Password must be at least 6 characters.');
-                        return;
-                      }
-
-                      await saveLoginData(user, pass);
-                      showAlertDialog("Account Created. Now log in.");
-                    },
-                    child: const Text('Sign Up'),
-                  ),
-                ],
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/login_bg.jpg"),
+                fit: BoxFit.cover,
               ),
+            ),
+          ),
+          // Semi-transparent overlay
+          Container(color: Colors.black.withOpacity(0.6)),
+          // Login form
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Card(
+                  color: Colors.white.withOpacity(0.7), // Make the card background transparent
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 8,
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        const Text(
+                          "Login to Your Account",
+                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: usernameController,
+                          decoration: const InputDecoration(
+                            labelText: "Email or Phone",
+                            prefixIcon: Icon(Icons.person),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        TextField(
+                          controller: passwordController,
+                          obscureText: !isPasswordVisible,
+                          decoration: InputDecoration(
+                            labelText: "Password",
+                            prefixIcon: const Icon(Icons.lock),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                  isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                              onPressed: () {
+                                setState(() {
+                                  isPasswordVisible = !isPasswordVisible;
+                                });
+                              },
+                            ),
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: rememberMe,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      rememberMe = value ?? false;
+                                    });
+                                  },
+                                ),
+                                const Text("Remember Me"),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: forgotPasswordDialog,
+                              child: const Text("Forgot Password?"),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            String user = usernameController.text.trim();
+                            String pass = passwordController.text.trim();
+
+                            if (!isEmailOrPhone(user)) {
+                              showAlertDialog("Enter a valid email or 10-digit phone number.");
+                              return;
+                            }
+                            if (!isStrongPassword(pass)) {
+                              showAlertDialog(
+                                  "Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
+                              return;
+                            }
+
+                            setState(() => isLoading = true);
+                            bool isValid = await validateLogin(user, pass);
+                            setState(() => isLoading = false);
+
+                            if (isValid) {
+                              if (rememberMe) {
+                                await saveLoginData(user, pass);
+                              }
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (_) => const HomePage()),
+                              );
+                            } else {
+                              showAlertDialog("Invalid username or password.");
+                            }
+                          },
+                          icon: const Icon(Icons.login),
+                          label: const Text("Login"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 44, 100, 179),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        OutlinedButton(
+                          onPressed: () async {
+                            String user = usernameController.text.trim();
+                            String pass = passwordController.text.trim();
+
+                            if (!isEmailOrPhone(user)) {
+                              showAlertDialog("Enter a valid email or 10-digit phone number.");
+                              return;
+                            }
+
+                            if (!isStrongPassword(pass)) {
+                              showAlertDialog(
+                                  "Password must be at least 8 characters,\ninclude uppercase, number, and symbol.");
+                              return;
+                            }
+
+                            await saveLoginData(user, pass);
+                            showAlertDialog("Account Created. Now log in.");
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color.fromARGB(255, 39, 114, 176),
+                            side: const BorderSide(color: Color.fromARGB(255, 39, 128, 176)),
+                          ),
+                          child: const Text("Sign Up"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -227,85 +303,105 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('Home Page'),
-        backgroundColor: const Color.fromARGB(255, 127, 195, 236),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       drawer: Drawer(
-        backgroundColor: const Color.fromARGB(255, 55, 150, 191),
+        backgroundColor: Colors.lightBlue.shade100,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
               decoration: BoxDecoration(color: Color.fromARGB(255, 6, 33, 79)),
-              child: Text('child care', style: TextStyle(color: Colors.white, fontSize: 30)),
+              child: Text('Child Care', style: TextStyle(color: Colors.white, fontSize: 30)),
             ),
             ListTile(
-              leading: const Icon(Icons.home, color: Colors.white),
-              title: const Text('Home', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.home, color: Colors.blueGrey),
+              title: const Text('Home'),
               onTap: () => Navigator.pushNamed(context, '/home'),
             ),
             ListTile(
-              leading: const Icon(Icons.info, color: Colors.white),
-              title: const Text('About', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/third'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.feedback, color: Colors.white),
-              title: const Text('Feedback', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.person, color: Colors.blueGrey),
+              title: const Text('Profile'),
               onTap: () => Navigator.pushNamed(context, '/fourth'),
             ),
             ListTile(
-              leading: const Icon(Icons.settings, color: Colors.white),
-              title: const Text('Settings', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.message_rounded, color: Colors.blueGrey),
+              title: const Text('Chat Bot'),
+              onTap: () => Navigator.pushNamed(context, '/third'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.videogame_asset, color: Colors.blueGrey),
+              title: const Text('Game'),
+              onTap: () => Navigator.pushNamed(context, '/second'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings, color: Colors.blueGrey),
+              title: const Text('Settings'),
               onTap: () => Navigator.pushNamed(context, '/fifth'),
             ),
             ListTile(
-              leading: const Icon(Icons.person, color: Colors.white),
-              title: const Text('Profile/Login', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.feedback, color: Colors.blueGrey),
+              title: const Text('Feedback'),
               onTap: () => Navigator.pushNamed(context, '/sixth'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.message_rounded, color: Colors.white),
-              title: const Text('Chat Bot', style: TextStyle(color: Colors.white)),
-              onTap: () => Navigator.pushNamed(context, '/third'),
             ),
           ],
         ),
       ),
-      body: Container(
-        alignment: Alignment.center,
-        padding: const EdgeInsets.all(30),
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/Background.jpg'),
-            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Lottie.asset(
+              'assets/animation/child_care.json',
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Autism Early Detection App',
-              style: TextStyle(
-                color: Color.fromARGB(255, 43, 153, 161),
-                fontSize: 40,
-                fontWeight: FontWeight.bold,
-                fontStyle: FontStyle.italic,
-              ),
+          Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Text(
+                  'Autism Early Detection App',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4,
+                        color: Colors.black54,
+                        offset: Offset(2, 2),
+                      )
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Helping parents assess developmental milestones in children',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 4,
+                        color: Colors.black38,
+                        offset: Offset(1, 1),
+                      )
+                    ],
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 20),
-            Text(
-              'Helping parents assess developmental milestones in children',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color.fromARGB(255, 21, 0, 70),
-                fontWeight: FontWeight.w700,
-                fontSize: 24,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -314,19 +410,41 @@ class HomePage extends StatelessWidget {
 class Profile extends StatefulWidget {
   const Profile({super.key});
 
-    @override
+  @override
   State<Profile> createState() => _UserProfilePageState();
 }
 
 class _UserProfilePageState extends State<Profile> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController ageController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  // Controllers for the profile fields
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+  final TextEditingController genderController = TextEditingController();
+  final TextEditingController parentNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController streetController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+  final TextEditingController stateController = TextEditingController();
+  final TextEditingController zipController = TextEditingController();
+  final TextEditingController emergencyContactController = TextEditingController();
+  final TextEditingController heightController = TextEditingController();
+  final TextEditingController weightController = TextEditingController();
+  final TextEditingController bloodGroupController = TextEditingController();
+  final TextEditingController allergiesController = TextEditingController();
+  final TextEditingController medicalConditionsController = TextEditingController();
+  final TextEditingController currentMedicationsController = TextEditingController();
+  final TextEditingController immunizationStatusController = TextEditingController();
+  final TextEditingController familyDoctorController = TextEditingController();
+  final TextEditingController therapistContactController = TextEditingController();
 
   File? _profileImage;
   File? _videoFile;
 
+  String selectedHeightUnit = 'cm';  // Options for height unit
+  String selectedWeightUnit = 'kg';  // Options for weight unit
+
+  // Function to pick an image from the gallery
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -338,6 +456,7 @@ class _UserProfilePageState extends State<Profile> {
     }
   }
 
+  // Function to pick a video from the gallery
   Future<void> _pickVideo() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickVideo(source: ImageSource.gallery);
@@ -349,11 +468,26 @@ class _UserProfilePageState extends State<Profile> {
     }
   }
 
+  // Function to save the profile data
   void _saveProfile() {
-    final name = nameController.text;
-    final age = ageController.text;
-    final address = addressController.text;
+    final firstName = firstNameController.text;
+    final lastName = lastNameController.text;
+    final dob = dobController.text;
+    final gender = genderController.text;
+    final parentName = parentNameController.text;
     final phone = phoneController.text;
+    final email = emailController.text;
+    final address = '${streetController.text}, ${cityController.text}, ${stateController.text}, ${zipController.text}';
+    final emergencyContact = emergencyContactController.text;
+    final height = heightController.text;
+    final weight = weightController.text;
+    final bloodGroup = bloodGroupController.text;
+    final allergies = allergiesController.text;
+    final medicalConditions = medicalConditionsController.text;
+    final currentMedications = currentMedicationsController.text;
+    final immunizationStatus = immunizationStatusController.text;
+    final familyDoctor = familyDoctorController.text;
+    final therapistContact = therapistContactController.text;
 
     // Save these to Firebase or local DB if required
 
@@ -362,6 +496,7 @@ class _UserProfilePageState extends State<Profile> {
     );
   }
 
+  // Function to handle logout
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -382,64 +517,130 @@ class _UserProfilePageState extends State<Profile> {
             icon: const Icon(Icons.logout),
             onPressed: _logout,
             tooltip: 'Logout',
-          )
+          ),
         ],
+        backgroundColor: Colors.transparent, // Transparent AppBar
+        elevation: 0, // Remove shadow
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage:
-                    _profileImage != null ? FileImage(_profileImage!) : null,
-                child: _profileImage == null
-                    ? const Icon(Icons.add_a_photo, size: 40)
-                    : null,
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/Profile_Background.jpg'), // Your background image
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickImage,
+                child: CircleAvatar(
+                  radius: 60,
+                  backgroundImage: _profileImage != null
+                      ? FileImage(_profileImage!)
+                      : null,
+                  child: _profileImage == null
+                      ? const Icon(Icons.add_a_photo, size: 50, color: Colors.white)
+                      : null,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Full Name'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: ageController,
-              decoration: const InputDecoration(labelText: "Child's Age"),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: addressController,
-              decoration: const InputDecoration(labelText: 'Address'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(labelText: 'Phone Number'),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _pickVideo,
-              icon: const Icon(Icons.video_file),
-              label: const Text('Upload Observation Video'),
-            ),
-            if (_videoFile != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child:
-                    Text('Selected Video: ${_videoFile!.path.split('/').last}'),
+              const SizedBox(height: 20),
+              // First Name and Last Name on the same line
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(firstNameController, 'First Name'),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildTextField(lastNameController, 'Last Name'),
+                  ),
+                ],
               ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: _saveProfile,
-              child: const Text('Save Profile'),
-            ),
-          ],
+              const SizedBox(height: 10),
+              _buildTextField(dobController, 'Date of Birth / Age'),
+              _buildTextField(genderController, 'Gender'),
+              _buildTextField(parentNameController, 'Parent/Guardian Name'),
+              _buildPhoneNumberField(),
+              _buildTextField(emailController, 'Email Address'),
+              const SizedBox(height: 20),
+              // Address section
+              _buildTextField(streetController, 'Street Address'),
+              _buildTextField(cityController, 'City'),
+              _buildTextField(stateController, 'State'),
+              _buildTextField(zipController, 'ZIP Code'),
+              const SizedBox(height: 20),
+              _buildTextField(emergencyContactController, 'Emergency Contact(s)'),
+              // Height and Weight on the same line
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(heightController, 'Height', TextInputType.number),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildUnitSelector('Height Unit', selectedHeightUnit, ['cm', 'm']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(weightController, 'Weight', TextInputType.number),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildUnitSelector('Weight Unit', selectedWeightUnit, ['kg', 'lbs']),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(bloodGroupController, 'Blood Group'),
+              _buildTextField(allergiesController, 'Allergies'),
+              _buildTextField(medicalConditionsController, 'Medical Conditions'),
+              _buildTextField(currentMedicationsController, 'Current Medications'),
+              _buildTextField(immunizationStatusController, 'Immunization Status'),
+              _buildTextField(familyDoctorController, 'Family Doctor Contact'),
+              _buildTextField(therapistContactController, 'Therapist Contact Info'),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _pickVideo,
+                icon: const Icon(Icons.video_file),
+                label: const Text('Upload Observation Video'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(94, 154, 180, 1), // Light blue theme
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+              if (_videoFile != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text('Selected Video: ${_videoFile!.path.split('/').last}'),
+                ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _saveProfile,
+                icon: const Icon(Icons.save),
+                label: const Text('Save Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromRGBO(94, 154, 180, 1), // Light blue theme
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _logout,
+                icon: const Icon(Icons.exit_to_app),
+                label: const Text('Logout'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Red for logout
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -534,7 +735,6 @@ class _UserProfilePageState extends State<Profile> {
     );
   }
 }
-
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
