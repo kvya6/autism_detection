@@ -297,7 +297,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -738,6 +737,7 @@ class _UserProfilePageState extends State<Profile> {
 }
 
 
+
 class Settings extends StatefulWidget {
   const Settings({super.key});
 
@@ -746,108 +746,117 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  final List<_SettingSection> sections = [
+    _SettingSection("Accessibility", Icons.accessibility_new_rounded, [
+      "Text Size & Font Choice",
+      "High Contrast / Dark Mode",
+      "Sound Control",
+      "Animation Toggle",
+      "Haptic Feedback",
+      "Speech Output"
+    ]),
+    _SettingSection("Notifications", Icons.notifications_active, [
+      "Routine Reminders",
+      "Session Limits",
+      "Event Reminders"
+    ]),
+    _SettingSection("Parental Controls", Icons.lock_person, [
+      "PIN Protection",
+      "Content Control",
+      "Data Consent",
+      "Profile Lock"
+    ]),
+    _SettingSection("Progress & Reports", Icons.bar_chart_rounded, [
+      "Track Progress",
+      "Export Reports",
+      "Sync with Therapist"
+    ]),
+    _SettingSection("Language & Region", Icons.language, [
+      "Language Selection",
+      "Voice Options",
+      "Date & Time Format"
+    ]),
+    _SettingSection("App Customization", Icons.format_paint, [
+      "Theme Selection",
+      "Avatar Builder",
+      "Rewards System"
+    ]),
+    _SettingSection("Support & Help", Icons.help_outline, [
+      "Tutorials",
+      "FAQs",
+      "Contact Support",
+      "Report Issue"
+    ]),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            'Settings',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 30,
+    return Scaffold(
+      backgroundColor: Colors.blue.shade50,
+      appBar: AppBar(
+        backgroundColor: Colors.lightBlue.shade700,
+        title: const Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        ),
+        centerTitle: true,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: sections.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final section = sections[index];
+          return Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            color: Colors.white,
+            elevation: 3,
+            child: ExpansionTile(
+              leading: Icon(section.icon, color: Colors.lightBlue.shade700),
+              title: Text(
+                section.title,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade800),
+              ),
+              children: section.items
+                  .map((item) => ListTile(
+                        title: Text(item, style: TextStyle(color: Colors.blueGrey.shade700)),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          // Placeholder for setting detail navigation
+                        },
+                      ))
+                  .toList(),
             ),
+          );
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16),
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.lightBlue.shade700,
+            minimumSize: const Size.fromHeight(50),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          backgroundColor: Colors.purple.shade800,
-          centerTitle: true,
-        ),
-        body: ListView(
-          padding: const EdgeInsets.all(15),
-          children: [
-            _buildSection("Accessibility Settings", [
-              "Text Size & Font Choice",
-              "High Contrast Mode / Dark Mode",
-              "Sound Control (Mute, Volume Adjustments)",
-              "Animation Toggle",
-              "Haptic Feedback Control",
-              "Speech Output Speed & Tone"
-            ]),
-            _buildSection("Learning Customization", [
-              "Preferred Learning Style Selector",
-              "Task Difficulty Adjustment",
-              "Repetition Settings",
-              "Progression Control"
-            ]),
-            _buildSection("Notifications & Reminders", [
-              "Routine Reminders",
-              "Session Time Limits",
-              "Event Reminders"
-            ]),
-            _buildSection("Parental Controls & Security", [
-              "PIN Protection",
-              "Content Access Control",
-              "Data Sharing Consent",
-              "Profile Switching Lock"
-            ]),
-            _buildSection("Progress & Reports", [
-              "Enable/Disable Progress Tracking",
-              "Export Reports",
-              "Sync with Therapist/Educator"
-            ]),
-            _buildSection("Language & Regional Settings", [
-              "Language Selection",
-              "Voice Language Options",
-              "Date & Time Format"
-            ]),
-            _buildSection("App Customization", [
-              "Theme Selection",
-              "Custom Avatar Builder",
-              "Custom Rewards System"
-            ]),
-            _buildSection("Support & Help", [
-              "How-To Tutorials",
-              "FAQs",
-              "Contact Support",
-              "Report an Issue"
-            ]),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple.shade800,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-              ),
-              child: const Text(
-                'Back to Home',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
-          ],
+          icon: const Icon(Icons.home, color: Colors.white),
+          label: const Text('Back to Home', style: TextStyle(color: Colors.white, fontSize: 16)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
       ),
     );
   }
+}
 
-  Widget _buildSection(String title, List<String> items) {
-    return ExpansionTile(
-      title: Text(
-        title,
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-      ),
-      children: items
-          .map((item) => ListTile(
-                title: Text(item),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // Placeholder for future individual setting screens
-                },
-              ))
-          .toList(),
-    );
-  }
+class _SettingSection {
+  final String title;
+  final IconData icon;
+  final List<String> items;
+
+  _SettingSection(this.title, this.icon, this.items);
 }
 
 class ChatBotPage extends StatefulWidget {
